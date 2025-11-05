@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Locals Only V2
 
-## Getting Started
+A full-stack Airbnb Experiences clone built with Next.js, React, TypeScript, Prisma, and Vercel Postgres.
 
-First, run the development server:
+## 🚀 Tech Stack
+
+- **Frontend**: Next.js (App Router) + React + TypeScript + styled-components
+- **Backend**: Next.js API Routes
+- **Database**: Vercel Postgres (PostgreSQL)
+- **ORM**: Prisma
+- **State Management**: React Query (TanStack Query)
+- **HTTP Client**: Axios
+
+## 📋 Prerequisites
+
+- Node.js 18+ installed
+- PostgreSQL database (local or Vercel Postgres)
+- Yarn package manager (or npm)
+
+## 🛠️ Setup Instructions
+
+### 1. Install Dependencies
+
+```bash
+npm install
+# or
+yarn install
+```
+
+### 2. Set Up Database
+
+1. Create a `.env` file in the root directory:
+
+```bash
+DATABASE_URL="postgresql://user:password@localhost:5432/dbname?schema=public"
+```
+
+For Vercel Postgres, use the connection string provided in your Vercel dashboard.
+
+### 3. Initialize Prisma
+
+```bash
+# Generate Prisma Client
+npm run db:generate
+
+# Push schema to database
+npm run db:push
+
+# Seed the database
+npm run db:seed
+```
+
+### 4. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  app/
+    api/
+      experiences/
+        route.ts         # GET + POST endpoints
+      experiences/[id]/
+        route.ts         # GET + PUT + DELETE endpoints
+    experiences/
+      page.tsx           # Experiences listing page
+      [id]/page.tsx      # Experience detail page
+  components/
+    ExperienceCard.tsx   # Reusable experience card component
+  hooks/
+    useExperiencesQuery.ts  # React Query hook for experiences
+  lib/
+    prisma.ts            # Prisma client singleton
+    apiClient.ts         # Axios client configuration
+  styles/
+    globalStyles.ts      # Global styled-components styles
+  types/
+    experience.ts        # TypeScript types
+  utils/
+    formatters.ts        # Utility functions
 
-## Learn More
+prisma/
+  schema.prisma          # Prisma schema definition
+  seed.ts                # Database seed script
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 🎯 Features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- ✅ List all experiences
+- ✅ View experience details
+- ✅ Create new experiences (API endpoint)
+- ✅ Update experiences (API endpoint)
+- ✅ Delete experiences (API endpoint)
+- ✅ Server-side rendering (SSR)
+- ✅ React Query for state management
+- ✅ Responsive design with styled-components
+- ✅ Type-safe with TypeScript
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📝 API Endpoints
 
-## Deploy on Vercel
+- `GET /api/experiences` - Get all experiences
+- `POST /api/experiences` - Create a new experience
+- `GET /api/experiences/[id]` - Get a specific experience
+- `PUT /api/experiences/[id]` - Update an experience
+- `DELETE /api/experiences/[id]` - Delete an experience
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚢 Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Deploy to Vercel
+
+1. Push your code to GitHub
+2. Import your repository in Vercel
+3. Add your `DATABASE_URL` environment variable in Vercel dashboard
+4. Vercel will automatically deploy your app
+
+After deployment, run:
+```bash
+npm run db:push
+npm run db:seed
+```
+
+## 📄 License
+
+MIT
