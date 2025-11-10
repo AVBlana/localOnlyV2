@@ -10,6 +10,7 @@ A full-stack Airbnb Experiences clone built with Next.js, React, TypeScript, Pri
 - **ORM**: Prisma
 - **State Management**: React Query (TanStack Query)
 - **HTTP Client**: Axios
+- **Auth**: NextAuth.js (Google OAuth 2.0)
 
 ## 📋 Prerequisites
 
@@ -27,17 +28,31 @@ npm install
 yarn install
 ```
 
-### 2. Set Up Database
+### 2. Configure Environment
 
-1. Create a `.env` file in the root directory:
+Create a `.env` file in the root directory:
 
 ```bash
 DATABASE_URL="postgresql://user:password@localhost:5432/dbname?schema=public"
+NEXTAUTH_SECRET="generate-a-random-string"
+GOOGLE_CLIENT_ID="your-google-oauth-client-id"
+GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret"
 ```
 
 For Vercel Postgres, use the connection string provided in your Vercel dashboard.
 
-### 3. Initialize Prisma
+> Tip: You can generate `NEXTAUTH_SECRET` with `openssl rand -base64 32`.
+
+### 3. Set Up Google OAuth
+
+1. Visit [Google Cloud Console](https://console.cloud.google.com/).
+2. Create (or select) a project and enable **Google OAuth consent screen**.
+3. Create OAuth credentials for a **Web application**.
+4. Add `http://localhost:3000` as an authorized origin.
+5. Add `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI.
+6. Copy the Client ID and Client Secret into `.env`.
+
+### 4. Initialize Prisma
 
 ```bash
 # Generate Prisma Client
@@ -101,6 +116,15 @@ prisma/
 - ✅ React Query for state management
 - ✅ Responsive design with styled-components
 - ✅ Type-safe with TypeScript
+- ✅ Google sign-in with host/client roles
+- ✅ Hosts-only experience upload flow
+
+## 👥 Roles
+
+- **Clients**: default role after Google sign-in; browse and book experiences.
+- **Hosts**: can upload, edit, and remove their own experiences.
+
+Mark a user as a host by updating their `role` column to `HOST` in the database (the seed script creates `host@example.com` as the default host).
 
 ## 📝 API Endpoints
 
@@ -109,6 +133,7 @@ prisma/
 - `GET /api/experiences/[id]` - Get a specific experience
 - `PUT /api/experiences/[id]` - Update an experience
 - `DELETE /api/experiences/[id]` - Delete an experience
+- `GET /api/auth/session` - Retrieve the active auth session (NextAuth)
 
 ## 🚢 Deployment
 

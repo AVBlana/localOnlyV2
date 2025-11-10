@@ -6,6 +6,10 @@ export interface Experience {
   rating: number;
   image: string;
   description?: string;
-  createdAt: Date;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  hostName?: string | null;
+  hostImage?: string | null;
 }
 

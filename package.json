@@ -12,10 +12,13 @@
     "db:generate": "prisma generate"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^1.7.1",
     "@prisma/client": "^6.19.0",
     "@tanstack/react-query": "^5.90.7",
+    "@tanstack/react-virtual": "^3.13.12",
     "axios": "^1.13.2",
     "next": "16.0.1",
+    "next-auth": "^5.0.0",
     "prisma": "^6.19.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",

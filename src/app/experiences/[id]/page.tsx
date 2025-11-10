@@ -1,127 +1,79 @@
-"use client";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
+import ExperienceDetailContent from "@/components/ExperienceDetailContent";
 
-import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import styled from "styled-components";
-import Link from "next/link";
-import { apiClient } from "@/lib/apiClient";
-import { Experience } from "@/types/experience";
-import { formatPrice, formatRating } from "@/utils/formatters";
+export const dynamic = "force-dynamic";
 
-const Container = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-`;
+async function getBaseUrl() {
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const forwardedHost = headersList.get("x-forwarded-host");
+  const protoHeader = headersList.get("x-forwarded-proto");
+  const hostname = forwardedHost ?? host;
 
-const BackLink = styled(Link)`
-  display: inline-block;
-  color: #666;
-  text-decoration: none;
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
-
-  &:hover {
-    color: #e91e63;
+  if (!hostname) {
+    const envHost = process.env.NEXT_PUBLIC_BASE_URL;
+    if (envHost) {
+      return envHost.replace(/\/$/, "");
+    }
+    throw new Error("Unable to resolve request host");
   }
-`;
 
-const Image = styled.img`
-  width: 100%;
-  height: 400px;
-  object-fit: cover;
-  border-radius: 16px;
-  margin-bottom: 2rem;
-`;
+  const protocol =
+    (protoHeader ? protoHeader.split(",")[0]?.trim() : undefined) ??
+    (hostname.startsWith("localhost") || hostname.startsWith("127.0.0.1")
+      ? "http"
+      : "https");
 
-const Title = styled.h1`
-  font-size: 2.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-`;
+  return `${protocol}://${hostname}`;
+}
 
-const Location = styled.p`
-  font-size: 1.2rem;
-  color: #666;
-  margin-bottom: 1rem;
-`;
+async function getExperience(id: string) {
+  if (!id) {
+    return null;
+  }
 
-const Price = styled.div`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #e91e63;
-  margin-bottom: 1rem;
-`;
-
-const Rating = styled.div`
-  font-size: 1.2rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const Description = styled.p`
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: #444;
-  margin-top: 1.5rem;
-`;
-
-const Loading = styled.div`
-  text-align: center;
-  padding: 4rem 2rem;
-  font-size: 1.2rem;
-  color: #666;
-`;
-
-const Error = styled.div`
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #e91e63;
-  font-size: 1.2rem;
-`;
-
-export default function ExperienceDetailPage() {
-  const params = useParams();
-  const id = params.id as string;
-
-  const { data: experience, isLoading, error } = useQuery<Experience>({
-    queryKey: ["experience", id],
-    queryFn: async () => {
-      const { data } = await apiClient.get(`/experiences/${id}`);
-      return data;
-    },
+  const baseUrl = await getBaseUrl();
+  const res = await fetch(`${baseUrl}/api/experiences/${id}`, {
+    cache: "no-store",
   });
 
-  if (isLoading) {
-    return (
-      <Container>
-        <Loading>Loading experience...</Loading>
-      </Container>
-    );
+  if (res.status === 404) {
+    return null;
   }
 
-  if (error || !experience) {
-    return (
-      <Container>
-        <Error>Error loading experience. Please try again later.</Error>
-      </Container>
-    );
+  if (!res.ok) {
+    throw new Error("Failed to fetch experience");
+  }
+
+  return res.json();
+}
+
+export default async function ExperienceDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const experience = await getExperience(id);
+
+  if (!experience) {
+    notFound();
   }
 
   return (
-    <Container>
-      <BackLink href="/experiences">← Back to Experiences</BackLink>
-      <Image src={experience.image} alt={experience.title} />
-      <Title>{experience.title}</Title>
-      <Location>{experience.location}</Location>
-      <Price>{formatPrice(experience.price)}</Price>
-      <Rating>⭐ {formatRating(experience.rating)}</Rating>
-      {experience.description && (
-        <Description>{experience.description}</Description>
-      )}
-    </Container>
+    <ExperienceDetailContent
+      experience={{
+        id: experience.id,
+        title: experience.title,
+        location: experience.location,
+        price: Number(experience.price),
+        rating: Number(experience.rating),
+        image: experience.image,
+        description: experience.description ?? "",
+        hostName: experience.hostName,
+      }}
+    />
   );
 }
 

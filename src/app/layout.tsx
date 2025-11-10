@@ -1,23 +1,20 @@
-"use client";
-
-import { GlobalStyle } from "@/styles/globalStyles";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import type { ReactNode } from "react";
+import StyledComponentsRegistry from "@/lib/styled-components-registry";
+import { Providers } from "./providers";
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
-  const [queryClient] = useState(() => new QueryClient());
-
   return (
     <html lang="en">
       <body>
-        <QueryClientProvider client={queryClient}>
-          <GlobalStyle />
-          {children}
-        </QueryClientProvider>
+        <StyledComponentsRegistry>
+          <Providers>
+            {children}
+          </Providers>
+        </StyledComponentsRegistry>
       </body>
     </html>
   );
