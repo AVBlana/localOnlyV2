@@ -34,7 +34,7 @@ Create a `.env` file in the root directory:
 
 ```bash
 DATABASE_URL="postgresql://user:password@localhost:5432/dbname?schema=public"
-NEXTAUTH_SECRET="generate-a-random-string"
+AUTH_SECRET="generate-a-random-string" # or NEXTAUTH_SECRET for backwards compatibility
 GOOGLE_CLIENT_ID="your-google-oauth-client-id"
 GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret"
 ```

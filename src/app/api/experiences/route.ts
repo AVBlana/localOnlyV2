@@ -2,6 +2,24 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+type ExperienceWithHost = {
+  id: string;
+  title: string;
+  location: string;
+  price: number;
+  rating: number;
+  image: string;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  host: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  } | null;
+};
+
 export async function GET() {
   const experiences = await prisma.experience.findMany({
     orderBy: { createdAt: "desc" },
@@ -16,11 +34,14 @@ export async function GET() {
     },
   });
 
-  const formatted = experiences.map(({ host, ...experience }) => ({
-    ...experience,
-    hostName: host?.name ?? null,
-    hostImage: host?.image ?? null,
-  }));
+  const formatted = experiences.map((experience: ExperienceWithHost) => {
+    const { host, ...rest } = experience;
+    return {
+      ...rest,
+      hostName: host?.name ?? null,
+      hostImage: host?.image ?? null,
+    };
+  });
 
   return NextResponse.json(formatted);
 }
