@@ -20,8 +20,18 @@ type ExperienceWithHost = {
   } | null;
 };
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const limitParam = searchParams.get("limit");
+  const pageParam = searchParams.get("page");
+
+  const limit = Math.max(1, Math.min(Number(limitParam) || 12, 50));
+  const page = Math.max(1, Number(pageParam) || 1);
+  const skip = (page - 1) * limit;
+
   const experiences = await prisma.experience.findMany({
+    skip,
+    take: limit + 1,
     orderBy: { createdAt: "desc" },
     include: {
       host: {
@@ -34,7 +44,10 @@ export async function GET() {
     },
   });
 
-  const formatted = experiences.map((experience: ExperienceWithHost) => {
+  const hasMore = experiences.length > limit;
+  const limitedExperiences = hasMore ? experiences.slice(0, limit) : experiences;
+
+  const formatted = limitedExperiences.map((experience: ExperienceWithHost) => {
     const { host, ...rest } = experience;
     return {
       ...rest,
@@ -43,7 +56,11 @@ export async function GET() {
     };
   });
 
-  return NextResponse.json(formatted);
+  return NextResponse.json({
+    items: formatted,
+    nextPage: hasMore ? page + 1 : null,
+    hasMore,
+  });
 }
 
 export async function POST(req: Request) {

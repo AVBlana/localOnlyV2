@@ -2,6 +2,7 @@
 
 import styled from "styled-components";
 import Link from "next/link";
+import Image from "next/image";
 
 const Container = styled.div`
   min-height: 100vh;
@@ -13,10 +14,10 @@ const Container = styled.div`
   text-align: center;
 `;
 
-const Title = styled.h1`
-  font-size: 3rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
+const Logo = styled(Image)`
+  width: 400px;
+  height: auto;
+  margin-bottom: 1.5rem;
 `;
 
 const Subtitle = styled.p`
@@ -44,7 +45,13 @@ const Button = styled(Link)`
 export default function Home() {
   return (
     <Container>
-      <Title>Locals Only</Title>
+      <Logo
+        src="/localsOnlyLogoV4.7Tryangle.png"
+        alt="Locals Only"
+        width={160}
+        height={160}
+        priority
+      />
       <Subtitle>Discover unique local experiences</Subtitle>
       <Button href="/experiences">Browse Experiences</Button>
     </Container>
