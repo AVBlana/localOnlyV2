@@ -9,6 +9,7 @@ declare module "styled-components" {
       textSecondary: string;
       accent: string;
       accentHover: string;
+      onAccent: string;
       border: string;
       cardBackground: string;
     };

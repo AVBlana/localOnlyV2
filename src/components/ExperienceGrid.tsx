@@ -86,17 +86,17 @@ export default function ExperienceGrid({ experiences }: ExperienceGridProps) {
     return nextRows;
   }, [experiences, columns]);
 
+  const safeColumns = useMemo(() => Math.max(columns, 1), [columns]);
+
   const estimatedRowHeight = useMemo(() => {
-    if (columns === 0 || containerWidth === 0) {
+    if (containerWidth === 0) {
       return 320;
     }
-    const totalGapWidth = GRID_GAP_PX * Math.max(columns - 1, 0);
-    const cardWidth = (containerWidth - totalGapWidth) / columns;
+    const totalGapWidth = GRID_GAP_PX * Math.max(safeColumns - 1, 0);
+    const cardWidth = (containerWidth - totalGapWidth) / safeColumns;
     const imageHeight = cardWidth / CARD_IMAGE_RATIO;
     return imageHeight + INFO_HEIGHT_ESTIMATE + GRID_GAP_PX;
-  }, [columns, containerWidth]);
-
-  const safeColumns = Math.max(columns, 1);
+  }, [safeColumns, containerWidth]);
 
   const shouldUseVirtualization =
     rows.length > safeColumns * 2 && containerWidth > 0;

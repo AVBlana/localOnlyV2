@@ -53,14 +53,14 @@ export interface VirtualizedExperienceGridProps {
 
 export default function VirtualizedExperienceGrid({ experiences }: VirtualizedExperienceGridProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const resizeObserverRef = useRef<ResizeObserver>();
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [scrollMargin, setScrollMargin] = useState(0);
 
   const handleContainerRef = useCallback((node: HTMLDivElement | null) => {
     if (resizeObserverRef.current) {
       resizeObserverRef.current.disconnect();
-      resizeObserverRef.current = undefined;
+      resizeObserverRef.current = null;
     }
 
     containerRef.current = node;

@@ -15,7 +15,7 @@ const Container = styled.div`
 `;
 
 const Logo = styled(Image)`
-  width: 400px;
+  width: 4 00px;
   height: auto;
   margin-bottom: 1.5rem;
 `;
@@ -48,8 +48,8 @@ export default function Home() {
       <Logo
         src="/localsOnlyLogoV4.7Tryangle.png"
         alt="Locals Only"
-        width={160}
-        height={160}
+        width={600}
+        height={600}
         priority
       />
       <Subtitle>Discover unique local experiences</Subtitle>
