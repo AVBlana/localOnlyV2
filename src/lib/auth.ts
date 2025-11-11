@@ -1,5 +1,6 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import Google from "next-auth/providers/google";
 import prisma from "@/lib/prisma";
 
@@ -16,7 +17,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma) as any,
   secret: requireEnv(authSecret, "AUTH_SECRET or NEXTAUTH_SECRET"),
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
   providers: [
     Google({
@@ -25,10 +26,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    session: async ({ session, user }) => {
+    jwt: async ({ token, user }) => {
+      const tokenWithRole = token as TokenWithRole;
+
+      if (user) {
+        tokenWithRole.role = (user as { role?: UserRole }).role ?? tokenWithRole.role ?? "CLIENT";
+        tokenWithRole.name = user.name ?? tokenWithRole.name;
+      }
+
+      if (!tokenWithRole.role && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true, name: true },
+        });
+
+        if (dbUser) {
+          tokenWithRole.role = dbUser.role;
+          tokenWithRole.name = dbUser.name ?? tokenWithRole.name;
+        }
+      }
+
+      return tokenWithRole;
+    },
+    session: async ({ session, token }) => {
       if (session.user) {
-        session.user.id = user.id;
-        session.user.role = user.role;
+        const tokenWithRole = token as TokenWithRole;
+        session.user.id = token.sub ?? session.user.id ?? "";
+        session.user.role = tokenWithRole.role ?? "CLIENT";
+        session.user.name = tokenWithRole.name ?? session.user.name;
       }
       return session;
     },
@@ -44,4 +69,7 @@ export async function getHostSession() {
 
   return session;
 }
+
+type UserRole = "CLIENT" | "HOST";
+type TokenWithRole = JWT & { role?: UserRole; name?: string | null };
 
