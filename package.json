@@ -9,7 +9,8 @@
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:populate-filters": "tsx scripts/populate-filters.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
@@ -17,6 +18,7 @@
     "@tanstack/react-query": "^5.90.7",
     "@tanstack/react-virtual": "^3.13.12",
     "axios": "^1.13.2",
+    "lucide-react": "^0.562.0",
     "next": "16.0.1",
     "next-auth": "5.0.0-beta.30",
     "prisma": "^6.19.0",

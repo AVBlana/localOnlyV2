@@ -14,17 +14,23 @@ const Card = styled(Link)`
   flex-direction: column;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: ${({ theme }) => theme.shadows.card};
-  background: ${({ theme }) => theme.colors.cardBackground};
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   contain: layout style paint;
   backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: ${({ theme }) => theme.shadows.cardHover};
+    transform: translateY(-4px) translateZ(0);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
   }
 `;
 
@@ -40,6 +46,14 @@ const Info = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
+  justify-content: space-between;
+`;
+
+const TopSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 `;
 
 const Title = styled.h3`
@@ -47,6 +61,36 @@ const Title = styled.h3`
   font-size: 1.2rem;
   font-weight: 600;
   line-height: 1.3;
+`;
+
+const TagsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.25rem;
+`;
+
+const Tag = styled.span`
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  transform: translateY(0);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: ${({ theme }) => theme.colors.accent};
+    color: ${({ theme }) => theme.colors.accent};
+  }
 `;
 
 const Location = styled.p`
@@ -61,22 +105,69 @@ const Host = styled.p`
   font-size: 0.85rem;
 `;
 
-const Price = styled.p`
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.accent};
+const BottomRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
 `;
 
 const Rating = styled.div`
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.9rem;
+  gap: 0.5rem;
+  font-size: 0.95rem;
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
+const StarsContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+`;
+
+const Star = styled.span<{ $filled: boolean }>`
+  font-size: 1rem;
+  color: ${({ $filled, theme }) => 
+    $filled ? '#FFD700' : theme.colors.textSecondary};
+  opacity: ${({ $filled }) => $filled ? 1 : 0.3};
+  line-height: 1;
+`;
+
+const RatingValue = styled.span`
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+const Price = styled.div`
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.accent};
+  white-space: nowrap;
+`;
+
 function ExperienceCardComponent({ experience }: { experience: Experience }) {
+  const rating = experience.rating;
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  // Collect all filter tags
+  const tags: string[] = [];
+  if (experience.activityTypes && experience.activityTypes.length > 0) {
+    tags.push(...experience.activityTypes);
+  }
+  if (experience.timeOfDays && experience.timeOfDays.length > 0) {
+    tags.push(...experience.timeOfDays);
+  }
+  if (experience.duration) {
+    tags.push(experience.duration);
+  }
+  if (experience.specials && experience.specials.length > 0) {
+    tags.push(...experience.specials);
+  }
+
   return (
     <Card href={`/experiences/${experience.id}`} scroll={false}>
       <ImageWrapper>
@@ -90,14 +181,41 @@ function ExperienceCardComponent({ experience }: { experience: Experience }) {
         />
       </ImageWrapper>
       <Info>
-        <Title>{experience.title}</Title>
-        <Location>{experience.location}</Location>
-        {experience.hostName && <Host>Hosted by {experience.hostName}</Host>}
-        <Rating aria-label={`Rating ${experience.rating} out of 5`}>
-          <span aria-hidden="true">⭐</span>
-          {experience.rating.toFixed(1)}
-        </Rating>
-        <Price>{formatPrice(experience.price)}</Price>
+        <TopSection>
+          <Title>{experience.title}</Title>
+          {tags.length > 0 && (
+            <TagsContainer>
+              {tags.map((tag, index) => (
+                <Tag key={`${tag}-${index}`}>{tag}</Tag>
+              ))}
+            </TagsContainer>
+          )}
+          <Location>{experience.location}</Location>
+          {experience.hostName && <Host>Hosted by {experience.hostName}</Host>}
+        </TopSection>
+        <BottomRow>
+          <Rating aria-label={`Rating ${rating.toFixed(1)} out of 5`}>
+            <StarsContainer>
+              {Array.from({ length: fullStars }).map((_, i) => (
+                <Star key={`full-${i}`} $filled={true} aria-hidden="true">
+                  ★
+                </Star>
+              ))}
+              {hasHalfStar && (
+                <Star $filled={true} aria-hidden="true" style={{ opacity: 0.6 }}>
+                  ★
+                </Star>
+              )}
+              {Array.from({ length: emptyStars }).map((_, i) => (
+                <Star key={`empty-${i}`} $filled={false} aria-hidden="true">
+                  ★
+                </Star>
+              ))}
+            </StarsContainer>
+            <RatingValue>{rating.toFixed(1)}</RatingValue>
+          </Rating>
+          <Price>{formatPrice(experience.price)}</Price>
+        </BottomRow>
       </Info>
     </Card>
   );

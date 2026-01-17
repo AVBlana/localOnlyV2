@@ -1,3 +1,5 @@
+import { ActivityType, TimeOfDay, Duration, Special } from "./filters";
+
 export interface Experience {
   id: string;
   title: string;
@@ -6,6 +8,10 @@ export interface Experience {
   rating: number;
   image: string;
   description?: string;
+  activityTypes?: ActivityType[];
+  timeOfDays?: TimeOfDay[];
+  duration?: Duration | null;
+  specials?: Special[];
   createdAt: string;
   updatedAt: string;
   userId: string;

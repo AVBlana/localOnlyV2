@@ -72,6 +72,10 @@ export default async function ExperienceDetailPage({
         image: experience.image,
         description: experience.description ?? "",
         hostName: experience.hostName,
+        activityTypes: (experience.activityTypes as any) || [],
+        timeOfDays: (experience.timeOfDays as any) || [],
+        duration: (experience.duration as any) || null,
+        specials: (experience.specials as any) || [],
       }}
     />
   );

@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import {
+  mapActivityTypeToEnum,
+  mapTimeOfDayToEnum,
+  mapDurationToEnum,
+  mapSpecialToEnum,
+  mapActivityTypeFromEnum,
+  mapTimeOfDayFromEnum,
+  mapDurationFromEnum,
+  mapSpecialFromEnum,
+} from "@/utils/filterMappers";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,6 +37,10 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     ...rest,
     hostName: host?.name ?? null,
     hostImage: host?.image ?? null,
+    activityTypes: (rest.activityTypes || []).map(mapActivityTypeFromEnum),
+    timeOfDays: (rest.timeOfDays || []).map(mapTimeOfDayFromEnum),
+    duration: mapDurationFromEnum(rest.duration),
+    specials: (rest.specials || []).map(mapSpecialFromEnum),
   });
 }
 
@@ -53,18 +67,45 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 
   const body = await req.json();
-  const { title, location, price, rating, image, description } = body ?? {};
+  const {
+    title,
+    location,
+    price,
+    rating,
+    image,
+    description,
+    activityTypes,
+    timeOfDays,
+    duration,
+    specials,
+  } = body ?? {};
+
+  // Map filter fields if provided
+  const updateData: any = {
+    title,
+    location,
+    price: price !== undefined ? Number(price) : undefined,
+    rating: rating !== undefined ? Number(rating) : undefined,
+    image,
+    description,
+  };
+
+  if (activityTypes !== undefined) {
+    updateData.activityTypes = (activityTypes as string[]).map(mapActivityTypeToEnum);
+  }
+  if (timeOfDays !== undefined) {
+    updateData.timeOfDays = (timeOfDays as string[]).map(mapTimeOfDayToEnum);
+  }
+  if (duration !== undefined) {
+    updateData.duration = duration ? mapDurationToEnum(duration as any) : null;
+  }
+  if (specials !== undefined) {
+    updateData.specials = (specials as string[]).map(mapSpecialToEnum);
+  }
 
   const updated = await prisma.experience.update({
     where: { id },
-    data: {
-      title,
-      location,
-      price: price !== undefined ? Number(price) : undefined,
-      rating: rating !== undefined ? Number(rating) : undefined,
-      image,
-      description,
-    },
+    data: updateData,
   });
 
   return NextResponse.json(updated);

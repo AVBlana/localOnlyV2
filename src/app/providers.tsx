@@ -35,7 +35,18 @@ export function useThemeMode() {
 }
 
 export function Providers({ children }: PropsWithChildren) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnWindowFocus: false,
+            refetchOnMount: false,
+            staleTime: 5 * 60 * 1000, // 5 minutes
+          },
+        },
+      })
+  );
   const [themeMode, setThemeMode] = useState<ThemeMode>("dark");
 
   useEffect(() => {

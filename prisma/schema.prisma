@@ -7,18 +7,56 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum ActivityType {
+  ART_AND_CULTURE
+  TOURS
+  ENTERTAINMENT
+  SIGHTSEEING
+  FOOD_AND_DRINK
+  WELLNESS
+  SPORTS
+  NATURE_AND_OUTDOORS
+}
+
+enum TimeOfDay {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+enum Duration {
+  UP_TO_1H
+  ONE_TO_4H
+  FOUR_H_TO_1_DAY
+  ONE_TO_3_DAYS
+  THREE_PLUS_DAYS
+}
+
+enum Special {
+  DEALS_AND_DISCOUNTS
+  FREE_CANCELLATION
+  SKIP_THE_LINE
+  LIKELY_TO_SELL_OUT
+  PRIVATE_TOUR
+  NEW_EXPERIENCE
+}
+
 model Experience {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   title       String
   location    String
   price       Float
   rating      Float
   image       String
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  activityTypes ActivityType[]
+  timeOfDays    TimeOfDay[]
+  duration      Duration?
+  specials      Special[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   userId      String
-  host        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  host        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

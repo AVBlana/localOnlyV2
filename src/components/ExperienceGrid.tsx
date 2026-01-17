@@ -43,7 +43,6 @@ type ExperienceGridProps = {
 export default function ExperienceGrid({ experiences }: ExperienceGridProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [scrollMargin, setScrollMargin] = useState(0);
 
   const columns = useMemo(() => {
     if (containerWidth >= 1080) return 3;
@@ -61,17 +60,8 @@ export default function ExperienceGrid({ experiences }: ExperienceGridProps) {
     });
     resizeObserver.observe(node);
 
-    const updateScrollMargin = () => {
-      const rect = node.getBoundingClientRect();
-      setScrollMargin(window.scrollY + rect.top);
-    };
-
-    updateScrollMargin();
-    window.addEventListener("resize", updateScrollMargin);
-
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener("resize", updateScrollMargin);
     };
   }, []);
 
@@ -101,11 +91,12 @@ export default function ExperienceGrid({ experiences }: ExperienceGridProps) {
   const shouldUseVirtualization =
     rows.length > safeColumns * 2 && containerWidth > 0;
 
+  // Don't use scrollMargin - the container is already correctly positioned
+  // in the document flow, and using scrollMargin can cause layout shifts
   const rowVirtualizer = useWindowVirtualizer({
     count: rows.length,
     estimateSize: () => estimatedRowHeight,
     overscan: 4,
-    scrollMargin,
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();
@@ -126,9 +117,10 @@ export default function ExperienceGrid({ experiences }: ExperienceGridProps) {
     <GridContainer ref={containerRef}>
       <div
         style={{
-          height: rowVirtualizer.getTotalSize(),
+          height: `${rowVirtualizer.getTotalSize()}px`,
           width: "100%",
           position: "relative",
+          contain: "layout style paint",
         }}
       >
         {virtualRows.map((virtualRow) => {
@@ -141,6 +133,7 @@ export default function ExperienceGrid({ experiences }: ExperienceGridProps) {
               ref={rowVirtualizer.measureElement}
               style={{
                 transform: `translateY(${virtualRow.start}px)`,
+                willChange: "transform",
               }}
             >
               <RowGrid $columns={safeColumns}>

@@ -5,6 +5,16 @@ import styled from "styled-components";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/apiClient";
+import {
+  ACTIVITY_TYPES,
+  TIME_OF_DAYS,
+  DURATIONS,
+  SPECIALS,
+  ActivityType,
+  TimeOfDay,
+  Duration,
+  Special,
+} from "@/types/filters";
 
 const Container = styled.div`
   max-width: 640px;
@@ -110,6 +120,80 @@ const SuccessMessage = styled.p`
   font-size: 0.9rem;
 `;
 
+const CheckboxGroup = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+`;
+
+const CheckboxContainer = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surface};
+  }
+`;
+
+const CheckboxInput = styled.input`
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: ${({ theme }) => theme.colors.accent};
+`;
+
+const CheckboxLabel = styled.span`
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+const RadioGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+`;
+
+const RadioContainer = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.surface};
+  }
+`;
+
+const RadioInput = styled.input`
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: ${({ theme }) => theme.colors.accent};
+`;
+
+const RadioLabel = styled.span`
+  font-size: 0.9rem;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
 type CreateExperiencePayload = {
   title: string;
   location: string;
@@ -117,6 +201,10 @@ type CreateExperiencePayload = {
   rating: number;
   image: string;
   description?: string;
+  activityTypes?: ActivityType[];
+  timeOfDays?: TimeOfDay[];
+  duration?: Duration | null;
+  specials?: Special[];
 };
 
 export default function ExperienceForm() {
@@ -124,6 +212,12 @@ export default function ExperienceForm() {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  
+  // Filter state
+  const [activityTypes, setActivityTypes] = useState<ActivityType[]>([]);
+  const [timeOfDays, setTimeOfDays] = useState<TimeOfDay[]>([]);
+  const [duration, setDuration] = useState<Duration | null>(null);
+  const [specials, setSpecials] = useState<Special[]>([]);
 
   const mutation = useMutation({
     mutationFn: async (payload: CreateExperiencePayload) => {
@@ -145,6 +239,34 @@ export default function ExperienceForm() {
     },
   });
 
+  const handleActivityTypeToggle = (activityType: ActivityType) => {
+    setActivityTypes((prev) =>
+      prev.includes(activityType)
+        ? prev.filter((t) => t !== activityType)
+        : [...prev, activityType]
+    );
+  };
+
+  const handleTimeOfDayToggle = (timeOfDay: TimeOfDay) => {
+    setTimeOfDays((prev) =>
+      prev.includes(timeOfDay)
+        ? prev.filter((t) => t !== timeOfDay)
+        : [...prev, timeOfDay]
+    );
+  };
+
+  const handleDurationChange = (newDuration: Duration) => {
+    setDuration(newDuration === duration ? null : newDuration);
+  };
+
+  const handleSpecialToggle = (special: Special) => {
+    setSpecials((prev) =>
+      prev.includes(special)
+        ? prev.filter((s) => s !== special)
+        : [...prev, special]
+    );
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -156,6 +278,10 @@ export default function ExperienceForm() {
       rating: Number(formData.get("rating")),
       image: String(formData.get("image") ?? "").trim(),
       description: String(formData.get("description") ?? "").trim() || undefined,
+      activityTypes: activityTypes.length > 0 ? activityTypes : undefined,
+      timeOfDays: timeOfDays.length > 0 ? timeOfDays : undefined,
+      duration: duration || undefined,
+      specials: specials.length > 0 ? specials : undefined,
     };
 
     if (!payload.title || !payload.location || !payload.image || !Number.isFinite(payload.price) || !Number.isFinite(payload.rating)) {
@@ -199,6 +325,68 @@ export default function ExperienceForm() {
           <Label htmlFor="description">Description</Label>
           <TextArea id="description" name="description" placeholder="Tell guests what makes this experience special" disabled={mutation.isPending} />
         </Field>
+
+        <SectionTitle>Activity Type</SectionTitle>
+        <CheckboxGroup>
+          {ACTIVITY_TYPES.map((type) => (
+            <CheckboxContainer key={type}>
+              <CheckboxInput
+                type="checkbox"
+                checked={activityTypes.includes(type)}
+                onChange={() => handleActivityTypeToggle(type)}
+                disabled={mutation.isPending}
+              />
+              <CheckboxLabel>{type}</CheckboxLabel>
+            </CheckboxContainer>
+          ))}
+        </CheckboxGroup>
+
+        <SectionTitle>Time of Day</SectionTitle>
+        <CheckboxGroup>
+          {TIME_OF_DAYS.map((time) => (
+            <CheckboxContainer key={time}>
+              <CheckboxInput
+                type="checkbox"
+                checked={timeOfDays.includes(time)}
+                onChange={() => handleTimeOfDayToggle(time)}
+                disabled={mutation.isPending}
+              />
+              <CheckboxLabel>{time}</CheckboxLabel>
+            </CheckboxContainer>
+          ))}
+        </CheckboxGroup>
+
+        <SectionTitle>Duration</SectionTitle>
+        <RadioGroup>
+          {DURATIONS.map((dur) => (
+            <RadioContainer key={dur}>
+              <RadioInput
+                type="radio"
+                name="duration"
+                checked={duration === dur}
+                onChange={() => handleDurationChange(dur)}
+                disabled={mutation.isPending}
+              />
+              <RadioLabel>{dur}</RadioLabel>
+            </RadioContainer>
+          ))}
+        </RadioGroup>
+
+        <SectionTitle>Specials</SectionTitle>
+        <CheckboxGroup>
+          {SPECIALS.map((special) => (
+            <CheckboxContainer key={special}>
+              <CheckboxInput
+                type="checkbox"
+                checked={specials.includes(special)}
+                onChange={() => handleSpecialToggle(special)}
+                disabled={mutation.isPending}
+              />
+              <CheckboxLabel>{special}</CheckboxLabel>
+            </CheckboxContainer>
+          ))}
+        </CheckboxGroup>
+
         {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
         {success && <SuccessMessage role="status">{success}</SuccessMessage>}
         <Actions>
