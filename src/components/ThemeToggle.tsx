@@ -1,16 +1,18 @@
 import styled from "styled-components";
+import { Moon, Sun } from "lucide-react";
 import { useThemeMode } from "@/app/providers";
 
 const ToggleButton = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.9rem;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 
@@ -25,15 +27,6 @@ const ToggleButton = styled.button`
   }
 `;
 
-const Indicator = styled.span<{ $active: boolean }>`
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: ${({ theme, $active }) =>
-    $active ? theme.colors.accent : theme.colors.border};
-  transition: background 0.2s ease;
-`;
-
 export default function ThemeToggle() {
   const { themeMode, toggleTheme } = useThemeMode();
   const isDark = themeMode === "dark";
@@ -42,11 +35,11 @@ export default function ThemeToggle() {
     <ToggleButton
       type="button"
       onClick={toggleTheme}
-      aria-label="Toggle color theme"
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       aria-pressed={isDark}
+      title={isDark ? "Light mode" : "Dark mode"}
     >
-      <Indicator $active={isDark} />
-      {isDark ? "Dark mode" : "Light mode"}
+      {isDark ? <Sun size={18} strokeWidth={2} /> : <Moon size={18} strokeWidth={2} />}
     </ToggleButton>
   );
 }

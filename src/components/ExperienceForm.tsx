@@ -17,9 +17,8 @@ import {
 } from "@/types/filters";
 
 const Container = styled.div`
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  padding: 2rem clamp(24px, 5vw, 80px);
 `;
 
 const Title = styled.h1`

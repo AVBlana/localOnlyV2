@@ -9,21 +9,26 @@ import AuthButton from "@/components/AuthButton";
 import UploadExperienceButton from "@/components/UploadExperienceButton";
 import FilterBar from "@/components/FilterBar";
 import FilterModal from "@/components/FilterModal";
+import SearchBar from "@/components/SearchBar";
 import { useExperiencesQuery } from "@/hooks/useExperiencesQuery";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import ExperienceGrid from "@/components/ExperienceGrid";
+import AppFooter from "@/components/AppFooter";
 import { ExperienceFilters, DEFAULT_FILTERS } from "@/types/filters";
+import {
+  SearchParams,
+  DEFAULT_SEARCH_PARAMS,
+} from "@/types/search";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
 `;
 
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem 2rem;
+  width: 100%;
+  padding: 0 clamp(24px, 5vw, 80px) 2rem;
   display: flex;
   flex-direction: column;
-  width: 100%;
   box-sizing: border-box;
 `;
 
@@ -40,35 +45,31 @@ const Header = styled.header`
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   z-index: 1000;
 `;
 
 const HeaderInner = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
   width: 100%;
-  padding: 0 2rem;
+  padding: 0 clamp(24px, 5vw, 80px);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-
-  @media (max-width: 768px) {
-    padding: 0 1rem;
-  }
 `;
 
 const HeaderTop = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   padding: 1.5rem 0;
 
-  @media (max-width: 768px) {
-    gap: 1rem;
-    padding: 1rem 0;
+  @media (max-width: 900px) {
     flex-wrap: wrap;
+  }
+
+  @media (max-width: 768px) {
+    gap: 0.75rem;
+    padding: 1rem 0;
   }
 `;
 
@@ -80,6 +81,21 @@ const HeaderLeft = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0;
+`;
+
+const HeaderCenter = styled.div`
+  flex: 1;
+  min-width: 0;
+  max-width: 400px;
+  margin: 0 2rem;
+
+  @media (max-width: 900px) {
+    flex: 1 1 100%;
+    order: 3;
+    max-width: none;
+    margin: 0.5rem 0 0;
+  }
 `;
 
 const LogoLink = styled(Link)`
@@ -126,21 +142,21 @@ const Content = styled.main`
 
 const Loading = styled.div`
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 4rem 0;
   font-size: 1.2rem;
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
 const Error = styled.div`
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 4rem 0;
   color: ${({ theme }) => theme.colors.accent};
   font-size: 1.2rem;
 `;
 
 const Empty = styled.div`
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 4rem 0;
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: 1.2rem;
 `;
@@ -163,137 +179,9 @@ const LoadingMore = styled.div`
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
-const Footer = styled.footer`
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  margin-top: auto;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 3rem 0;
-  margin-top: 4rem;
-
-  @media (max-width: 768px) {
-    padding: 2rem 0;
-    margin-top: 2rem;
-  }
-`;
-
-const FooterInner = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-  padding: 0 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  box-sizing: border-box;
-
-  @media (max-width: 768px) {
-    padding: 0 1rem;
-    gap: 1.5rem;
-  }
-`;
-
-const FooterContent = styled.div`
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 3rem;
-  align-items: start;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 2rem;
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-`;
-
-const FooterLogoSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: flex-start;
-
-  @media (max-width: 768px) {
-    align-items: center;
-    text-align: center;
-  }
-`;
-
-const FooterLogoLink = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
-`;
-
-const FooterLogo = styled(Image)`
-  width: 120px;
-  height: auto;
-  filter: brightness(0.95);
-`;
-
-const FooterSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
-
-const FooterTitle = styled.h3`
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0;
-  color: ${({ theme }) => theme.colors.textPrimary};
-`;
-
-const FooterLink = styled(Link)`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  text-decoration: none;
-  font-size: 0.95rem;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.accent};
-  }
-`;
-
-const FooterText = styled.p`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: 0.95rem;
-  margin: 0;
-  line-height: 1.6;
-`;
-
-const FooterBottom = styled.div`
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-`;
-
-const Copyright = styled.p`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: 0.9rem;
-  margin: 0;
-`;
-
-
 export default function ExperiencesPage() {
   const [filters, setFilters] = useState<ExperienceFilters>(DEFAULT_FILTERS);
+  const [searchParams, setSearchParams] = useState<SearchParams>(DEFAULT_SEARCH_PARAMS);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   const {
@@ -310,6 +198,30 @@ export default function ExperiencesPage() {
     () => data?.pages.flatMap((page) => page.items) ?? [],
     [data],
   );
+
+  // Debounce search inputs so filtering runs only when the user stops typing (performance).
+  const debouncedLocation = useDebouncedValue(searchParams.location, 300);
+  const debouncedExperience = useDebouncedValue(searchParams.experience, 300);
+
+  // Client-side filtering by SearchBar (location, experience text). Date is for future API.
+  const filteredExperiences = useMemo(() => {
+    let list = experiences;
+    const loc = debouncedLocation.trim().toLowerCase();
+    if (loc) {
+      list = list.filter((e) =>
+        e.location.toLowerCase().includes(loc),
+      );
+    }
+    const exp = debouncedExperience.trim().toLowerCase();
+    if (exp) {
+      list = list.filter(
+        (e) =>
+          e.title.toLowerCase().includes(exp) ||
+          (e.description ?? "").toLowerCase().includes(exp),
+      );
+    }
+    return list;
+  }, [experiences, debouncedLocation, debouncedExperience]);
 
   const averagePrice = useMemo(() => {
     return data?.pages[0]?.averagePrice ?? 0;
@@ -399,6 +311,13 @@ export default function ExperiencesPage() {
                 </LogoLink>
                 <Title>Experiences</Title>
               </HeaderLeft>
+              <HeaderCenter>
+                <SearchBar
+                  value={searchParams}
+                  onChange={setSearchParams}
+                  onSearch={setSearchParams}
+                />
+              </HeaderCenter>
               <Actions>
                 <BackLink href="/">← Home</BackLink>
                 <ThemeToggle />
@@ -432,6 +351,13 @@ export default function ExperiencesPage() {
                 </LogoLink>
                 <Title>Experiences</Title>
               </HeaderLeft>
+              <HeaderCenter>
+                <SearchBar
+                  value={searchParams}
+                  onChange={setSearchParams}
+                  onSearch={setSearchParams}
+                />
+              </HeaderCenter>
               <Actions>
                 <BackLink href="/">← Home</BackLink>
                 <ThemeToggle />
@@ -458,23 +384,30 @@ export default function ExperiencesPage() {
         <HeaderInner>
           <HeaderTop>
             <HeaderLeft>
-              <LogoLink href="/">
-                <LogoImage
-                  src="/localsOnlyLogoV4.7Tryangle.png"
-                  alt="Locals Only"
-                  width={64}
-                  height={64}
+                <LogoLink href="/">
+                  <LogoImage
+                    src="/localsOnlyLogoV4.7Tryangle.png"
+                    alt="Locals Only"
+                    width={64}
+                    height={64}
+                  />
+                </LogoLink>
+                <Title>Experiences</Title>
+              </HeaderLeft>
+              <HeaderCenter>
+                <SearchBar
+                  value={searchParams}
+                  onChange={setSearchParams}
+                  onSearch={setSearchParams}
                 />
-              </LogoLink>
-              <Title>Experiences</Title>
-            </HeaderLeft>
-            <Actions>
-              <BackLink href="/">← Home</BackLink>
-              <ThemeToggle />
-              <UploadExperienceButton />
-              <AuthButton />
-            </Actions>
-          </HeaderTop>
+              </HeaderCenter>
+              <Actions>
+                <BackLink href="/">← Home</BackLink>
+                <ThemeToggle />
+                <UploadExperienceButton />
+                <AuthButton />
+              </Actions>
+            </HeaderTop>
           <HeaderBottom>
             <FilterBar 
               filters={filters} 
@@ -486,10 +419,10 @@ export default function ExperiencesPage() {
       </Header>
       <Container>
         <Content>
-          {experiences.length > 0 ? (
+          {filteredExperiences.length > 0 ? (
             <>
               <GridWrapper>
-                <ExperienceGrid experiences={experiences} />
+                <ExperienceGrid experiences={filteredExperiences} />
               </GridWrapper>
               <LoadMoreSentinel ref={loadMoreRef} />
               {isFetchingNextPage && <LoadingMore>Loading more experiences...</LoadingMore>}
@@ -502,43 +435,7 @@ export default function ExperiencesPage() {
           )}
         </Content>
       </Container>
-      <Footer>
-        <FooterInner>
-          <FooterContent>
-            <FooterSection>
-              <FooterTitle>Locals Only</FooterTitle>
-              <FooterText>
-                Discover unique local experiences and connect with authentic hosts around the world.
-              </FooterText>
-            </FooterSection>
-            <FooterSection>
-              <FooterTitle>Explore</FooterTitle>
-              <FooterLink href="/experiences">Browse Experiences</FooterLink>
-              <FooterLink href="/experiences/new">Host an Experience</FooterLink>
-              <FooterLink href="/">Home</FooterLink>
-            </FooterSection>
-            <FooterSection>
-              <FooterTitle>About</FooterTitle>
-              <FooterLink href="#">How it works</FooterLink>
-              <FooterLink href="#">Safety</FooterLink>
-              <FooterLink href="#">Contact Us</FooterLink>
-            </FooterSection>
-            <FooterLogoSection>
-              <FooterLogoLink href="/">
-                <FooterLogo
-                  src="/localsOnlyLogoV4.7Tryangle.png"
-                  alt="Locals Only"
-                  width={120}
-                  height={120}
-                />
-              </FooterLogoLink>
-            </FooterLogoSection>
-          </FooterContent>
-          <FooterBottom>
-            <Copyright>© {new Date().getFullYear()} Locals Only. All rights reserved.</Copyright>
-          </FooterBottom>
-        </FooterInner>
-      </Footer>
+      <AppFooter />
       <FilterModal
         isOpen={isFilterModalOpen}
         onClose={handleCloseFilterModal}

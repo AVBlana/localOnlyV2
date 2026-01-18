@@ -4,17 +4,33 @@ import { useCallback } from "react";
 import styled from "styled-components";
 import { signIn, signOut, useSession } from "next-auth/react";
 
+function getInitials(name: string | null | undefined): string {
+  if (!name || !name.trim()) return "?";
+  const s = name.trim();
+  const parts = s.split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  // One word: try camelCase (e.g. BlanaTink -> BT)
+  const match = s.match(/^([A-Za-z])(?:[a-z]*)([A-Z])/);
+  if (match) return (match[1] + match[2]).toUpperCase();
+  return s.slice(0, 2).toUpperCase();
+}
+
 const Button = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 0.75rem;
   border-radius: 999px;
   background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.textPrimary};
   border: 1px solid ${({ theme }) => theme.colors.border};
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
   transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
 
   &:hover {
@@ -25,21 +41,6 @@ const Button = styled.button`
     opacity: 0.6;
     cursor: not-allowed;
   }
-`;
-
-const Label = styled.span`
-  font-weight: 500;
-`;
-
-const RoleBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.75rem;
-  padding: 0.1rem 0.5rem;
-  border-radius: 999px;
-  background: ${({ theme }) => theme.colors.cardBackground};
-  color: ${({ theme }) => theme.colors.textSecondary};
-  border: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 export default function AuthButton() {
@@ -54,21 +55,27 @@ export default function AuthButton() {
   }, []);
 
   if (status === "loading") {
-    return <Button type="button" disabled>Loading...</Button>;
+    return <Button type="button" disabled>...</Button>;
   }
 
   if (!session?.user) {
     return (
       <Button type="button" onClick={handleSignIn}>
-        <Label>Sign in</Label>
+        Sign in
       </Button>
     );
   }
 
+  const initials = getInitials(session.user.name);
+
   return (
-    <Button type="button" onClick={handleSignOut}>
-      <Label>{session.user.name ?? "Account"}</Label>
-      <RoleBadge>{session.user.role}</RoleBadge>
+    <Button
+      type="button"
+      onClick={handleSignOut}
+      title={session.user.name ?? "Account"}
+      aria-label={`Signed in as ${session.user.name ?? "Account"}. Sign out.`}
+    >
+      {initials}
     </Button>
   );
 }

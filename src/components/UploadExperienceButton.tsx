@@ -4,16 +4,20 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCallback } from "react";
 import styled from "styled-components";
+import { Upload } from "lucide-react";
 
 const Button = styled.button`
-  padding: 0.5rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border-radius: 12px;
   background: ${({ theme }) => theme.colors.accent};
-  color: #ffffff;
+  color: ${({ theme }) => theme.colors.onAccent};
   border: none;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.95rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
@@ -41,8 +45,13 @@ export default function UploadExperienceButton() {
   }
 
   return (
-    <Button type="button" onClick={handleClick}>
-      Upload Experience
+    <Button
+      type="button"
+      onClick={handleClick}
+      aria-label="Upload experience"
+      title="Upload experience"
+    >
+      <Upload size={18} strokeWidth={2} />
     </Button>
   );
 }

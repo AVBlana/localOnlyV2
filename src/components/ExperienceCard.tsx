@@ -14,23 +14,23 @@ const Card = styled(Link)`
   flex-direction: column;
   border-radius: 16px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* liquid glass - match ChallengeBadgeCard */
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   text-decoration: none;
   color: inherit;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-  contain: layout style paint;
   backface-visibility: hidden;
   transform: translateZ(0);
   will-change: transform;
 
   &:hover {
     transform: translateY(-4px) translateZ(0);
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   }
 `;
 
@@ -38,7 +38,7 @@ const ImageWrapper = styled.div`
   position: relative;
   width: 100%;
   aspect-ratio: ${CARD_IMAGE_RATIO};
-  background: ${({ theme }) => theme.colors.surface};
+  background: transparent;
 `;
 
 const Info = styled.div`
